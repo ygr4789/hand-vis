@@ -7,6 +7,7 @@ from vedo.applications import AnimationPlayer
 
 from hand_model import HandModel
 from prim import *
+from preprocess import Bones
 
 device = torch.device("cuda")
 
@@ -40,22 +41,6 @@ with open("data/125_0_pseudo_gt_handsel2_all_stage_result.pkl", "rb") as f:
     p2_hand_parmas_right = stage3_pseudo_gt_p2[1]["hand_params"]
     p2_wrist_T = stage3_pseudo_gt_p2[0]["wrist_T"]
     p2_wrist_T_right = stage3_pseudo_gt_p2[1]["wrist_T"]
-
-bone_pair_values = np.array(list(bone_pair.values()))
-
-p1_bones_pos_tail = p1_joints[:, bone_pair_values[:, 0], :]
-p1_bones_pos_head = p1_joints[:, bone_pair_values[:, 1], :]
-p1_bones_pos = (p1_bones_pos_tail + p1_bones_pos_head) / 2
-p1_bones_dir = p1_bones_pos_head - p1_bones_pos_tail
-p1_bones_len = np.linalg.norm(p1_bones_dir, axis=2)
-p1_bones_dir = p1_bones_dir / p1_bones_len[:, :, None]
-
-p2_bones_pos_tail = p2_joints[:, bone_pair_values[:, 0], :]
-p2_bones_pos_head = p2_joints[:, bone_pair_values[:, 1], :]
-p2_bones_pos = (p2_bones_pos_tail + p2_bones_pos_head) / 2
-p2_bones_dir = p2_bones_pos_head - p2_bones_pos_tail
-p2_bones_len = np.linalg.norm(p2_bones_dir, axis=2)
-p2_bones_dir = p2_bones_dir / p2_bones_len[:, :, None]
 
 num_frames = 90
 filtered_obj_verts_list = filtered_obj_verts_list[:num_frames]
@@ -95,37 +80,21 @@ p2_body_color = 'pink'
 p2_hand_color = 'red'
 
 obj_mesh = Mesh([filtered_obj_verts_list[0], obj_faces_list])
-obj_mesh.c(obj_color).alpha(0.7)
+obj_mesh.c(obj_color)
 
 p1_left_mesh = Mesh([p1_hand_left_verts[0], p1_hand_left_faces])
-p1_left_mesh.c(p1_hand_color).alpha(0.8)
+p1_left_mesh.c(p1_hand_color)
 
 p1_right_mesh = Mesh([p1_hand_right_verts[0], p1_hand_right_faces])
-p1_right_mesh.c(p1_hand_color).alpha(0.8)
+p1_right_mesh.c(p1_hand_color)
 
 p2_left_mesh = Mesh([p2_hand_left_verts[0], p2_hand_left_faces])
-p2_left_mesh.c(p2_hand_color).alpha(0.8)
+p2_left_mesh.c(p2_hand_color)
 
 p2_right_mesh = Mesh([p2_hand_right_verts[0], p2_hand_right_faces])
-p2_right_mesh.c(p2_hand_color).alpha(0.8)
+p2_right_mesh.c(p2_hand_color)
 
 floor = Box(size=(5, 0.01, 5)).c(floot_color)
-
-p1_joint_spheres = []
-for i in joint_radii:
-    p1_joint_spheres.append(Sphere(p1_joints[0][i], r=joint_radii[i]).c(p1_body_color))
-
-p2_joint_spheres = []
-for i in joint_radii:
-    p2_joint_spheres.append(Sphere(p2_joints[0][i], r=joint_radii[i]).c(p2_body_color))
-
-p1_bone_cylinders = []
-for i in bone_pair:
-    p1_bone_cylinders.append(Cylinder(p1_bones_pos[0][i], r=bone_radii[i], height=p1_bones_len[0][i], axis=p1_bones_dir[0][i]).c(p1_body_color))
-
-p2_bone_cylinders = []
-for i in bone_pair:
-    p2_bone_cylinders.append(Cylinder(p2_bones_pos[0][i], r=bone_radii[i], height=p2_bones_len[0][i], axis=p2_bones_dir[0][i]).c(p2_body_color))
 
 def update_meshes(frame):
     obj_mesh.points = filtered_obj_verts_list[frame]
@@ -133,24 +102,15 @@ def update_meshes(frame):
     p1_right_mesh.points = p1_hand_right_verts[frame]
     p2_left_mesh.points = p2_hand_left_verts[frame]
     p2_right_mesh.points = p2_hand_right_verts[frame]
-    
-    for i in range(len(p1_joint_spheres)):
-        p1_joint_spheres[i].pos(p1_joints[frame][i])
-    for i in range(len(p2_joint_spheres)):
-        p2_joint_spheres[i].pos(p2_joints[frame][i])
-    for i in range(len(p1_bone_cylinders)):
-        plt.remove(p1_bone_cylinders[i])
-        p1_bone_cylinders[i] = Cylinder(p1_bones_pos[frame][i], r=bone_radii[i], height=p1_bones_len[frame][i], axis=p1_bones_dir[frame][i]).c(p1_body_color)
-        plt.add(p1_bone_cylinders[i])
         
-    for i in range(len(p2_bone_cylinders)):
-        plt.remove(p2_bone_cylinders[i])
-        p2_bone_cylinders[i] = Cylinder(p2_bones_pos[frame][i], r=bone_radii[i], height=p2_bones_len[frame][i], axis=p2_bones_dir[frame][i]).c(p2_body_color)
-        plt.add(p2_bone_cylinders[i])
-        
+    bones1.set_frame(frame)
+    bones2.set_frame(frame)
     plt.render()
 
 plt = AnimationPlayer(update_meshes, irange=(0, num_frames-1), loop=True, dt = 33)
+bones1 = Bones(p1_joints, plt, p1_body_color)
+bones2 = Bones(p2_joints, plt, p2_body_color)
 
-plt.add(obj_mesh, p1_left_mesh, p1_right_mesh, p2_left_mesh, p2_right_mesh, floor, *p1_joint_spheres, *p2_joint_spheres, *p1_bone_cylinders, *p2_bone_cylinders)
+plt.add(obj_mesh, p1_left_mesh, p1_right_mesh, p2_left_mesh, p2_right_mesh, floor)
+update_meshes(0)
 plt.show()

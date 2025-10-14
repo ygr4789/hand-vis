@@ -1,7 +1,7 @@
 import bpy
 import numpy as np
 
-from bones import Bones
+from render.bones import Bones
 
 def create_mesh_for_frame(verts, faces, frame_num, material):
     """Create mesh object for a specific frame"""

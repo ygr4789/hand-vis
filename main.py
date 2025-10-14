@@ -53,7 +53,7 @@ def main() -> None:
     quality = "cycles" if high else "eevee"
     video_path = output_dir / f"{input_path.stem}_{quality}_sc{scene_no}"
     
-    intermediate_path = cache_dir / f"{input_path.stem}.pkl"
+    intermediate_path = cache_dir / f"{input_path.stem}.npz"
     preprocess_pkl_file(str(input_path), str(intermediate_path))
     render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), str(video_path), camera_no, scene_no, high)
 

@@ -1,15 +1,16 @@
 import bpy
 import os
 import sys
+import numpy as np
 
-dir = os.path.dirname(__file__)
-if not dir in sys.path:
-    sys.path.append(dir)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+script_dir = os.path.dirname(script_dir)
+if script_dir not in sys.path:
+    sys.path.append(script_dir)
 
-import pickle
-from utils import *
-from camera import *
-from prim import *
+from render.utils import *
+from render.camera import *
+from render.prim import *
 
 def parse_arguments():
     # Get all arguments after "--"
@@ -43,8 +44,7 @@ def main():
     setup_background_scene(scene_no)
     
     # Prepare render data
-    with open(data_path, "rb") as f:
-        data = pickle.load(f)
+    data = np.load(data_path)
     
     p1_joints = data["p1_joints"]
     p2_joints = data["p2_joints"]
@@ -92,6 +92,6 @@ def main():
     # Render animation
     camera_settings = prepare_camera_settings(root_loc1, root_loc2, camera_no)
     render_animation(video_path, camera_settings, anim_frames)
-
+    
 if __name__ == "__main__":
     main()

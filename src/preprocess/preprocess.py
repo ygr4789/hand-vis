@@ -1,6 +1,7 @@
 import pickle
 import torch
 import os
+import numpy as np
 
 from .hand_model import HandModel
 
@@ -81,21 +82,21 @@ def preprocess_pkl_file(pkl_path, save_path):
     p2_hand_left_faces = hand_model_left.hand_faces.detach().cpu().numpy()
     p2_hand_right_faces = hand_model_right.hand_faces.detach().cpu().numpy()
 
-    data = {
-        "num_frames": num_frames,
-        "p1_hand_left_verts": p1_hand_left_verts,
-        "p1_hand_right_verts": p1_hand_right_verts,
-        "p1_hand_left_faces": p1_hand_left_faces,
-        "p1_hand_right_faces": p1_hand_right_faces,
-        "p1_joints": p1_joints,
-        "p2_hand_left_verts": p2_hand_left_verts,
-        "p2_hand_right_verts": p2_hand_right_verts,
-        "p2_hand_left_faces": p2_hand_left_faces,
-        "p2_hand_right_faces": p2_hand_right_faces,
-        "p2_joints": p2_joints,
-        "obj_verts": obj_verts,
-        "obj_faces": obj_faces,
-    }
-
-    with open(save_path, "wb") as f:
-        pickle.dump(data, f)   
+    # Save data in numpy 1.23 compatibility format:
+    np.savez_compressed(
+        save_path,
+        num_frames=num_frames,
+        p1_hand_left_verts=p1_hand_left_verts,
+        p1_hand_right_verts=p1_hand_right_verts,
+        p1_hand_left_faces=p1_hand_left_faces,
+        p1_hand_right_faces=p1_hand_right_faces,
+        p1_joints=p1_joints,
+        p2_hand_left_verts=p2_hand_left_verts,
+        p2_hand_right_verts=p2_hand_right_verts,
+        p2_hand_left_faces=p2_hand_left_faces,
+        p2_hand_right_faces=p2_hand_right_faces,
+        p2_joints=p2_joints,
+        obj_verts=obj_verts,
+        obj_faces=obj_faces,
+        allow_pickle=True  # for potential lists/objects; adjust as required
+    )

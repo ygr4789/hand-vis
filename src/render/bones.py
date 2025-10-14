@@ -1,6 +1,6 @@
 import numpy as np
 
-from index import *
+from render.index import *
 
 def interpolate(a, b, t):
   return a + (b - a) * t

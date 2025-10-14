@@ -14,6 +14,8 @@ should be located in `blender/asset`
 
 Please check materials properly applied in `blender/scene.blender`
 
+Blender version 4.0 recommended
+
 ## Instruction
 
 The following command will execute SMPLify, export to an obj file, and render a pkl file all at once.
@@ -29,6 +31,6 @@ SMPL parameters and obj files will be stored in `cache`. If these files already 
 | Flag | Description |
 |------|-------------|
 | `-i, --input` | Path to input .pkl file or data directory (required) |
-| `-c, --camera` | Camera number (-1 for all cameras, default=-1) |
+| `-c, --camera` | Camera number (-1 for all cameras, default=0) |
 | `-sc, --scene` | Scene number (0 for no furniture, default=0) |
 | `-q, --high` | Enable cycles rendering (default is eevee) |

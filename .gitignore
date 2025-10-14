@@ -1,2 +1,6 @@
 __pycache__
 data
+asset
+cache
+output
+*.egg-info

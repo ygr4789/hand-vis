@@ -141,11 +141,11 @@ class Sphere:
     self.r = r
 
 class Cylinder:
-  def __init__(self, pos: np.ndarray, direction: np.ndarray, height: float = 0.05, r: float = 0.05):
+  def __init__(self, pos: np.ndarray, direction: np.ndarray, height: np.ndarray, r: float = 0.05):
     """
     pos: (frames, 3)
     direction: (frames, 3)
-    height: float
+    height: (frames, )
     r: float
     """
     self.pos = pos

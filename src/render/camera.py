@@ -45,31 +45,31 @@ def prepare_camera_settings(root_loc1, root_loc2, camera_no):
     initial_dir = initial_dir.normalized()
     
     for camera_param in camera_params:
-      azimuth, text = camera_param
-      up = mathutils.Vector((0, 0, 1))
-      cam_dir = up.cross(AB).normalized()
-      
-      azimuth = math.radians(azimuth)
-      rot_azimuth = mathutils.Matrix.Rotation(azimuth, 3, 'Z')
-      cam_dir = rot_azimuth @ cam_dir
-      angle = math.atan2(initial_dir.cross(cam_dir).dot(up), initial_dir.dot(cam_dir))
-      
-      cam_location = center + cam_dir * initial_distance + up * initial_height
-      
-      right = cam_dir.cross(up).normalized()
-      rot_elevation = mathutils.Matrix.Rotation(initial_elevation, 3, right)
-      cam_dir = rot_elevation @ cam_dir
-      
-      cam_rotation = (-cam_dir).to_track_quat('-Z', 'Y').to_euler()
-      
-      camera_setting = {
-          'cam_location': cam_location,
-          'cam_rotation': cam_rotation,
-          'center': center,
-          'angle': angle,
-          'text': text
-      }
-      camera_settings.append(camera_setting)
+        azimuth, text = camera_param
+        up = mathutils.Vector((0, 0, 1))
+        cam_dir = up.cross(AB).normalized()
+        
+        azimuth = math.radians(azimuth)
+        rot_azimuth = mathutils.Matrix.Rotation(azimuth, 3, 'Z')
+        cam_dir = rot_azimuth @ cam_dir
+        angle = math.atan2(initial_dir.cross(cam_dir).dot(up), initial_dir.dot(cam_dir))
+        
+        cam_location = center + cam_dir * initial_distance + up * initial_height
+        
+        right = cam_dir.cross(up).normalized()
+        rot_elevation = mathutils.Matrix.Rotation(initial_elevation, 3, right)
+        cam_dir = rot_elevation @ cam_dir
+        
+        cam_rotation = (-cam_dir).to_track_quat('-Z', 'Y').to_euler()
+        
+        camera_setting = {
+            'cam_location': cam_location,
+            'cam_rotation': cam_rotation,
+            'center': center,
+            'angle': angle,
+            'text': text
+        }
+        camera_settings.append(camera_setting)
     
     
     return camera_settings

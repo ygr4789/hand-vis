@@ -22,7 +22,8 @@ def main() -> None:
     parser.add_argument('-q', '--high', action='store_true', help='Use high quality rendering settings')
     parser.add_argument('-f', '--frame', type=int, help='Render only this frame (1-based). If omitted, render full animation', default=None)
     parser.add_argument('-ih', '--input_hand', action='store_true', help='Include input hand in the render')
-    parser.add_argument('-fg', '--figure', action='store_true', help='Render figure scene')
+    parser.add_argument('-fg', '--figure', action='store_true', help='Render figure scene with transparent background, only available for single frame image render')
+    parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
     
     args = parser.parse_args()
     input_path = args.input
@@ -32,6 +33,7 @@ def main() -> None:
     frame_no = args.frame
     input_hand = args.input_hand
     figure = args.figure
+    zoom = args.zoom
     
     # Create necessary directories
     input_path = Path(input_path)
@@ -61,6 +63,8 @@ def main() -> None:
         "-c", str(camera_no),
         "-sc", str(scene_no),
     ]
+    if zoom:
+        option_cmd.append("-z", str(zoom))
     if high:
         option_cmd.append("-q")
     if input_hand:
@@ -69,7 +73,7 @@ def main() -> None:
         option_cmd.extend(["-f", str(frame_no)])
     if figure:
         option_cmd.append("-fg")
-        
+    
     render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), video_path_output, option_cmd + ["-m", "output"])
     render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), video_path_input, option_cmd + ["-m", "input"])
 

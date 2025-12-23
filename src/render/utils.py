@@ -174,7 +174,7 @@ def setup_camera_setting(camera_setting):
     if sun:
         sun.rotation_euler = light_rotation
 
-def render_animation(video_path, camera_settings, num_frames):
+def render_animation(video_path, camera_settings):
     """Render animation from different camera angles"""
     for camera_setting in camera_settings:
         cam_text = camera_setting['text']
@@ -182,7 +182,7 @@ def render_animation(video_path, camera_settings, num_frames):
         bpy.context.scene.render.filepath = video_path
         setup_camera_setting(camera_setting)
         
-        print(f"Rendering {num_frames} frames for {cam_text}...")
+        print(f"Rendering animation for {cam_text}...")
         with stdout_redirected(keyword="Fra:", on_match=lambda line: line[:-1].encode()):
             bpy.ops.render.render(animation=True)
         print()
@@ -201,7 +201,7 @@ def render_single_frame(output_path, camera_settings, frame_no, figure):
         
     for camera_setting in camera_settings:
         cam_text = camera_setting['text']
-        filepath = f"{output_path}_{cam_text}_f{frame_no:04d}.png"
+        filepath = f"{output_path}_{cam_text}_f{frame_no:04d}{'_figure' if figure else ''}.png"
         bpy.context.scene.render.filepath = filepath
         setup_camera_setting(camera_setting)
         

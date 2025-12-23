@@ -31,6 +31,7 @@ def parse_arguments():
     parser.add_argument('-f', '--frame', type=int, default=None)
     parser.add_argument('-fg', '--figure', action='store_true')
     parser.add_argument('-ih', '--input_hand', action='store_true')
+    parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
     parser.add_argument('-m', '--mode', type=str, choices=['output', 'input'], default='output')
     
     return parser.parse_args(argv)
@@ -46,6 +47,7 @@ def main():
     render_mode = args.mode
     figure = args.figure
     input_hand = args.input_hand
+    zoom = args.zoom
     
     # Load scene and setup
     cleanup_existing_objects()
@@ -119,7 +121,7 @@ def main():
     if frame_no is not None:
         render_single_frame(video_path, camera_settings, frame_no, figure)
     else:
-        render_animation(video_path, camera_settings, anim_frames)
+        render_animation(video_path, camera_settings)
     
 if __name__ == "__main__":
     main()

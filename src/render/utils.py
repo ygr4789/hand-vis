@@ -53,6 +53,14 @@ def cleanup_existing_objects():
         for obj in sample_collection.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
 
+def setup_figure_scene():
+    """Setup figure scene"""
+    # Deactivate/hide the floor object
+    floor_obj = bpy.data.objects.get('Floor')
+    if floor_obj:
+        floor_obj.hide_render = True
+        floor_obj.hide_viewport = True
+
 def setup_background_scene(scene_no):
     """Setup background scene"""
     scenes_collection = bpy.data.collections.get('Scenes')
@@ -179,3 +187,25 @@ def render_animation(video_path, camera_settings, num_frames):
             bpy.ops.render.render(animation=True)
         print()
         print(f"Saved to {video_path}")
+
+def render_single_frame(output_path, camera_settings, frame_no, figure):
+    """Render a single frame (still image) from different camera angles"""
+    # Use image output for stills
+    bpy.context.scene.render.image_settings.file_format = 'PNG'
+    bpy.context.scene.frame_current = 1
+    
+    if figure:
+        setup_figure_scene()
+        bpy.context.scene.render.film_transparent = True
+        bpy.context.scene.render.image_settings.color_mode = 'RGBA'
+        
+    for camera_setting in camera_settings:
+        cam_text = camera_setting['text']
+        filepath = f"{output_path}_{cam_text}_f{frame_no:04d}.png"
+        bpy.context.scene.render.filepath = filepath
+        setup_camera_setting(camera_setting)
+        
+        print(f"Rendering frame {frame_no} for {cam_text}...")
+        with stdout_redirected(keyword="Fra:", on_match=lambda line: line[:-1].encode()):
+            bpy.ops.render.render(animation=False, write_still=True)
+        print(f"Saved to {filepath}")

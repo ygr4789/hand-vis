@@ -2,6 +2,7 @@ import bpy
 import os
 import sys
 import numpy as np
+import argparse
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 script_dir = os.path.dirname(script_dir)
@@ -22,11 +23,15 @@ def parse_arguments():
 
     # Create argument parser
     parser = argparse.ArgumentParser(description='Render SMPL visualization in Blender')
-    parser.add_argument('-i', '--input', required=True, type=str, help='Path to obj output folder (input)')
-    parser.add_argument('-o', '--output', required=True, type=str, help='Path to output video folder (output)')
-    parser.add_argument('-q', '--high', action='store_true', help='Use high quality rendering settings')
-    parser.add_argument('-c', '--camera', type=int, help='Camera number, default=-1 for all cameras', default=0)
-    parser.add_argument('-sc', '--scene', type=int, help='Scene number, default=0 for no furnitures', default=0)
+    parser.add_argument('-i', '--input', required=True, type=str)
+    parser.add_argument('-o', '--output', required=True, type=str)
+    parser.add_argument('-q', '--high', action='store_true')
+    parser.add_argument('-c', '--camera', type=int, default=0)
+    parser.add_argument('-sc', '--scene', type=int, default=0)
+    parser.add_argument('-f', '--frame', type=int, default=None)
+    parser.add_argument('-fg', '--figure', action='store_true')
+    parser.add_argument('-ih', '--input_hand', action='store_true')
+    parser.add_argument('-m', '--mode', type=str, choices=['output', 'input'], default='output')
     
     return parser.parse_args(argv)
 
@@ -37,6 +42,10 @@ def main():
     render_high = args.high
     camera_no = args.camera
     scene_no = args.scene
+    frame_no = args.frame
+    render_mode = args.mode
+    figure = args.figure
+    input_hand = args.input_hand
     
     # Load scene and setup
     cleanup_existing_objects()
@@ -46,22 +55,22 @@ def main():
     # Prepare render data
     data = np.load(data_path)
     
-    p1_joints = data["p1_joints"]
-    p2_joints = data["p2_joints"]
-    
-    p1_hand_left_verts = data["p1_hand_left_verts"]
-    p1_hand_right_verts = data["p1_hand_right_verts"]
-    p2_hand_left_verts = data["p2_hand_left_verts"]
-    p2_hand_right_verts = data["p2_hand_right_verts"]
-    
-    p1_hand_left_faces = data["p1_hand_left_faces"]
-    p1_hand_right_faces = data["p1_hand_right_faces"]
-    p2_hand_left_faces = data["p2_hand_left_faces"]
-    p2_hand_right_faces = data["p2_hand_right_faces"]
-    
     obj_verts = data["obj_verts"]
     obj_faces = data["obj_faces"]
     num_frames = data["num_frames"]
+    hand_left_faces = data["hand_left_faces"]
+    hand_right_faces = data["hand_right_faces"]
+    
+    p1_joints = data[f"{render_mode}_p1_joints"]
+    p2_joints = data[f"{render_mode}_p2_joints"]
+    p1_hand_left_verts = data[f"{render_mode}_p1_hand_left_verts"]
+    p1_hand_right_verts = data[f"{render_mode}_p1_hand_right_verts"]
+    p2_hand_left_verts = data[f"{render_mode}_p2_hand_left_verts"]
+    p2_hand_right_verts = data[f"{render_mode}_p2_hand_right_verts"]
+    
+    if render_mode == "input" and input_hand:
+        p1_joints = p1_joints[:, :22]
+        p2_joints = p2_joints[:, :22]
     
     p1_joints = convert_to_blender_coord(p1_joints)
     p2_joints = convert_to_blender_coord(p2_joints)
@@ -78,20 +87,39 @@ def main():
     anim_frames = num_frames*2-1
     setup_animation_settings(anim_frames)
     
+    if frame_no is not None:
+        frame_no = max(1, min(int(num_frames), int(frame_no)))
+        idx = frame_no - 1
+
+        p1_joints = p1_joints[idx:idx+1]
+        p2_joints = p2_joints[idx:idx+1]
+        p1_hand_left_verts = p1_hand_left_verts[idx:idx+1]
+        p1_hand_right_verts = p1_hand_right_verts[idx:idx+1]
+        p2_hand_left_verts = p2_hand_left_verts[idx:idx+1]
+        p2_hand_right_verts = p2_hand_right_verts[idx:idx+1]
+        obj_verts = obj_verts[idx:idx+1]
+        num_frames = 1
+    
     print("Preparing objects...")
     setup_joints_and_bones(p1_joints, "Red_soft")
     setup_joints_and_bones(p2_joints, "Blue_soft")
-    setup_mesh_keyframes(p1_hand_left_verts, p1_hand_left_faces, "Red")
-    setup_mesh_keyframes(p1_hand_right_verts, p1_hand_right_faces, "Red")
-    setup_mesh_keyframes(p2_hand_left_verts, p2_hand_left_faces, "Blue")
-    setup_mesh_keyframes(p2_hand_right_verts, p2_hand_right_faces, "Blue")
-    setup_mesh_keyframes(obj_verts, obj_faces, "Yellow")
-    print("Objects setup complete")
-    # setup_mesh_keyframes(obj_verts, obj_faces, "Yellow_soft")
+    setup_mesh_keyframes(obj_verts, obj_faces, "Gray")
     
-    # Render animation
+    if render_mode == "output" or (render_mode == "input" and input_hand):
+        setup_mesh_keyframes(p1_hand_left_verts, hand_left_faces, "Red")
+        setup_mesh_keyframes(p1_hand_right_verts, hand_right_faces, "Red")
+        setup_mesh_keyframes(p2_hand_left_verts, hand_left_faces, "Blue")
+        setup_mesh_keyframes(p2_hand_right_verts, hand_right_faces, "Blue")
+        
+    print("Objects setup complete")
+    
+    # Render animation or a single frame
     camera_settings = prepare_camera_settings(root_loc1, root_loc2, camera_no)
-    render_animation(video_path, camera_settings, anim_frames)
+    
+    if frame_no is not None:
+        render_single_frame(video_path, camera_settings, frame_no, figure)
+    else:
+        render_animation(video_path, camera_settings, anim_frames)
     
 if __name__ == "__main__":
     main()

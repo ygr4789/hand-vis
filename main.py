@@ -2,27 +2,15 @@ import argparse
 import os
 import subprocess
 from pathlib import Path
+from typing import Optional, List
 
 from config import *
 from preprocess.preprocess import preprocess_pkl_file
 
-def render_sequence(script: str, data_path: str, video_path: str, camera_no: int, scene_no: int, high: bool) -> None:
+def render_sequence(script: str, data_path: str, video_path: str, option_cmd: List[str]) -> None:
     """Render a sequence using Blender."""
-    cmd = [
-        "blender",
-        BLENDER_PATH,
-        "--background",
-        "--python", script,
-        "--",
-        "-i", str(data_path),
-        "-o", str(video_path),
-        "-c", str(camera_no),
-        "-sc", str(scene_no),
-    ]
-    
-    if high:
-        cmd.append("-q")
-        
+    option_cmd.extend(["-i", str(data_path), "-o", str(video_path)])
+    cmd = ["blender", BLENDER_PATH, "--background", "--python", script, "--", *option_cmd]
     env = os.environ.copy()
     subprocess.run(cmd, check=True, env=env)
 
@@ -32,12 +20,18 @@ def main() -> None:
     parser.add_argument('-c', '--camera', type=int, help='Camera number, -1 for all cameras', default=0)
     parser.add_argument('-sc', '--scene', type=int, help='Scene number, default=0 for no furnitures', default=0)
     parser.add_argument('-q', '--high', action='store_true', help='Use high quality rendering settings')
+    parser.add_argument('-f', '--frame', type=int, help='Render only this frame (1-based). If omitted, render full animation', default=None)
+    parser.add_argument('-ih', '--input_hand', action='store_true', help='Include input hand in the render')
+    parser.add_argument('-fg', '--figure', action='store_true', help='Render figure scene')
     
     args = parser.parse_args()
     input_path = args.input
     camera_no = args.camera
     scene_no = args.scene
     high = args.high
+    frame_no = args.frame
+    input_hand = args.input_hand
+    figure = args.figure
     
     # Create necessary directories
     input_path = Path(input_path)
@@ -46,16 +40,38 @@ def main() -> None:
         
     cache_dir = Path(CACHE_DIR)
     output_dir = Path(OUTPUT_DIR)
+    data_subdir = Path(f"{input_path.stem}")
     cache_dir.mkdir(exist_ok=True)
     output_dir.mkdir(exist_ok=True)
 
     input_path = Path(input_path)
     quality = "cycles" if high else "eevee"
-    video_path = output_dir / f"{input_path.stem}_{quality}_sc{scene_no}"
+    
+    file_name = f"{quality}_sc{scene_no}"
+        
+    file_name_output = file_name + "_output"
+    file_name_input = file_name + "_input"
+    video_path_output = output_dir / data_subdir / file_name_output
+    video_path_input = output_dir / data_subdir / file_name_input
     
     intermediate_path = cache_dir / f"{input_path.stem}.npz"
     preprocess_pkl_file(str(input_path), str(intermediate_path))
-    render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), str(video_path), camera_no, scene_no, high)
+    
+    option_cmd = [
+        "-c", str(camera_no),
+        "-sc", str(scene_no),
+    ]
+    if high:
+        option_cmd.append("-q")
+    if input_hand:
+        option_cmd.append("-ih")
+    if frame_no:
+        option_cmd.extend(["-f", str(frame_no)])
+    if figure:
+        option_cmd.append("-fg")
+        
+    render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), video_path_output, option_cmd + ["-m", "output"])
+    render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), video_path_input, option_cmd + ["-m", "input"])
 
 if __name__ == "__main__":
     main() 

@@ -7,7 +7,7 @@ def interpolate(a, b, t):
 
 def dir(a, b):
   dir = b - a
-  dir = dir / np.linalg.norm(dir)
+  dir = dir / np.linalg.norm(dir, axis=1)[:, None]
   return dir
 
 class Bones:
@@ -58,25 +58,25 @@ class Bones:
     hip_dir = dir(left_hip, right_hip)
     
     lower_spine = interpolate(pelvis, spine1, 0.2)
-    lower_spine_length = 0.5
+    lower_spine_length = 0.08
     lower_spine_size = 0.07
     lower_spine_start = lower_spine - hip_dir * lower_spine_length
     lower_spine_end = lower_spine + hip_dir * lower_spine_length
     
     upper_spine = interpolate(spine1, spine2, 0.7)
-    upper_spine_length = 0.5
+    upper_spine_length = 0.08
     upper_spine_size = 0.07
     upper_spine_start = upper_spine - shoulder_dir * upper_spine_length
     upper_spine_end = upper_spine + shoulder_dir * upper_spine_length
     
     middle_spine = interpolate(lower_spine, upper_spine, 0.5)
-    middle_spine_length = 0.4
+    middle_spine_length = 0.07
     middle_spine_size = 0.07
     middle_spine_start = middle_spine - shoulder_dir * middle_spine_length
     middle_spine_end = middle_spine + shoulder_dir * middle_spine_length
     
     chest = interpolate(spine3, neck, 0.1)
-    chest_length = 0.6
+    chest_length = 0.1
     chest_size = 0.075
     chest_start = chest - shoulder_dir * chest_length
     chest_end = chest + shoulder_dir * chest_length
@@ -90,7 +90,7 @@ class Bones:
     knee_size = 0.055
     upper_ankle_size = 0.045
     lower_ankle_size = 0.03
-    toe_size = 0.03
+    toe_size = 0.035
     head_size = 0.08
     shoulder_size = 0.07
     elbow_size = 0.04
@@ -121,6 +121,18 @@ class Bones:
     
     self.add_bone(chest, chin, neck_size)
     
+    if joints.shape[1] == 24:
+      palm_size = 0.04 
+      left_palm = joints[:,JOINT_LEFT_PALM]
+      right_palm = joints[:,JOINT_RIGHT_PALM]
+      left_direction = (left_palm - left_wrist) / np.linalg.norm(left_palm - left_wrist, axis=1, keepdims=True)
+      left_wrist_adjusted = left_wrist + left_direction * 0.025
+      self.add_sphere(left_wrist_adjusted, palm_size)
+
+      right_direction = (right_palm - right_wrist) / np.linalg.norm(right_palm - right_wrist, axis=1, keepdims=True)
+      right_wrist_adjusted = right_wrist + right_direction * 0.025
+      self.add_sphere(right_wrist_adjusted, palm_size)
+    
   def add_bone(self, tails, heads, radius=0.05):
     bones_pos = (tails + heads) / 2
     bones_dir = heads - tails
@@ -130,6 +142,9 @@ class Bones:
     self.spheres.append(Sphere(tails, r=radius))
     self.spheres.append(Sphere(heads, r=radius))
     self.cylinders.append(Cylinder(bones_pos, direction=bones_dir, height=bones_len, r=radius))
+  
+  def add_sphere(self, pos: np.ndarray, radius: float = 0.05):
+    self.spheres.append(Sphere(pos, r=radius))
 
 class Sphere:
   def __init__(self, pos: np.ndarray, r: float = 0.05):

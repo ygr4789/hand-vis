@@ -8,7 +8,7 @@ def create_mesh_for_frame(verts, faces, frame_num, material):
     # Create new mesh datablock
     mesh = bpy.data.meshes.new(f"Frame_{frame_num}_mesh")
     obj = bpy.data.objects.new(f"Frame_{frame_num}", mesh)
-    
+
     # Create mesh from vertices and faces
     mesh.from_pydata(verts, [], faces)
     mesh.update()
@@ -24,7 +24,7 @@ def create_mesh_for_frame(verts, faces, frame_num, material):
         bpy.ops.object.shade_smooth()
         
     return obj
-        
+
 def create_sphere(material, radius=0.05):
     """Create sphere object for joint visualization"""
     # Set different radius for each joint
@@ -37,19 +37,31 @@ def create_sphere(material, radius=0.05):
     return sphere
 
 def create_cylinder(material, radius=0.05):
-    """Create a cylinder object connecting two joints to represent a bone"""
-    # Calculate direction and length
+    """Create a cylinder object connecting two joints to represent a bone (side surface only, no end caps)"""
     # Create cylinder
     bpy.ops.mesh.primitive_cylinder_add(radius=radius)
     cylinder = bpy.context.active_object
-    with bpy.context.temp_override(selected_editable_objects=[cylinder]):
-        bpy.ops.object.shade_smooth()
     
-    # Add loop cuts to sides
+    # Remove end cap faces, keep only side surface
+    # Select end cap faces by checking their normals (they point along Z axis)
+    bpy.ops.object.mode_set(mode='OBJECT')
+    mesh = cylinder.data
+    
+    # Deselect all faces first
+    for face in mesh.polygons:
+        face.select = False
+    
+    # Select faces with normals aligned with Z axis (end caps)
+    for face in mesh.polygons:
+        if abs(face.normal.z) > 0.9:  # End cap (normal mostly along Z axis)
+            face.select = True
+    
+    # Switch to edit mode and delete selected end cap faces
     bpy.ops.object.mode_set(mode='EDIT')
+    bpy.ops.mesh.delete(type='FACE')
+    
+    # Add loop cuts to sides for better subdivision
     bpy.ops.mesh.select_all(action='SELECT')
-    # Use subdivide instead of loopcut since it doesn't require view3d context
-    bpy.ops.mesh.subdivide(number_cuts=10)
     bpy.ops.object.mode_set(mode='OBJECT')
     
     # Add material
@@ -117,7 +129,7 @@ def setup_cylinder_keyframes(cylinder, pos, direction, height):
         
         if np.any(rotation_axis):
             cylinder.rotation_mode = 'AXIS_ANGLE'
-            cylinder.rotation_axis_angle = [rotation_angle] + list(rotation_axis)
+            cylinder.rotation_axis_angle = [rotation_angle] + list(rotation_axis.tolist())
         
         cylinder.location = pos[frame]
         cylinder.keyframe_insert(data_path="location", frame=anim_frame)

@@ -122,8 +122,8 @@ def setup_low_quality_settings():
             if hasattr(eevee, attr):
                 setattr(eevee, attr, False)
 
-    bpy.context.scene.use_nodes = False
-    bpy.context.scene.render.use_compositing = False
+    # bpy.context.scene.use_nodes = False
+    # bpy.context.scene.render.use_compositing = False
     bpy.context.scene.render.use_sequencer = False
     bpy.context.scene.render.film_transparent = False
 
@@ -137,8 +137,8 @@ def setup_high_quality_settings():
     bpy.context.scene.render.resolution_x = 1920
     bpy.context.scene.render.resolution_y = 1080
     bpy.context.scene.render.resolution_percentage = 100
-    bpy.context.scene.use_nodes = False
-    bpy.context.scene.render.use_compositing = True
+    # bpy.context.scene.use_nodes = False
+    # bpy.context.scene.render.use_compositing = True
     bpy.context.scene.render.use_sequencer = True
     bpy.context.scene.render.film_transparent = False
 

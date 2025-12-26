@@ -81,10 +81,10 @@ class Bones:
     chest_start = chest - shoulder_dir * chest_length
     chest_end = chest + shoulder_dir * chest_length
     
-    self.add_bone(lower_spine_start, lower_spine_end, lower_spine_size)
-    self.add_bone(upper_spine_start, upper_spine_end, upper_spine_size)
-    self.add_bone(middle_spine_start, middle_spine_end, middle_spine_size)
-    self.add_bone(chest_start, chest_end, chest_size)
+    self.add_bone(COLOR_CLOTH, lower_spine_start, lower_spine_end, lower_spine_size)
+    self.add_bone(COLOR_CLOTH, upper_spine_start, upper_spine_end, upper_spine_size)
+    self.add_bone(COLOR_CLOTH, middle_spine_start, middle_spine_end, middle_spine_size)
+    self.add_bone(COLOR_CLOTH, chest_start, chest_end, chest_size)
     
     hip_size = 0.07
     knee_size = 0.055
@@ -98,28 +98,28 @@ class Bones:
     lower_arm_size = 0.02
     neck_size = 0.04
     
-    self.add_bone(left_hip, right_hip, hip_size)
-    self.add_bone(left_hip, left_knee, knee_size)
-    self.add_bone(right_hip, right_knee, knee_size)
-    self.add_bone(left_knee, left_shin, upper_ankle_size)
-    self.add_bone(right_knee, right_shin, upper_ankle_size)
-    self.add_bone(left_shin, left_ankle, lower_ankle_size)
-    self.add_bone(right_shin, right_ankle, lower_ankle_size)
+    self.add_bone(COLOR_PANTS, left_hip, right_hip, hip_size)
+    self.add_bone(COLOR_PANTS, left_hip, left_knee, knee_size)
+    self.add_bone(COLOR_PANTS, right_hip, right_knee, knee_size)
+    self.add_bone(COLOR_SKIN, left_knee, left_shin, upper_ankle_size)
+    self.add_bone(COLOR_SKIN, right_knee, right_shin, upper_ankle_size)
+    self.add_bone(COLOR_SKIN, left_shin, left_ankle, lower_ankle_size)
+    self.add_bone(COLOR_SKIN, right_shin, right_ankle, lower_ankle_size)
     
-    self.add_bone(left_ankle, left_toe, toe_size)
-    self.add_bone(right_ankle, right_toe, toe_size)
+    self.add_bone(COLOR_CLOTH, left_ankle, left_toe, toe_size)
+    self.add_bone(COLOR_CLOTH, right_ankle, right_toe, toe_size)
     
-    self.add_bone(chin, head, head_size)
-    self.add_bone(left_collar, left_collar_end, shoulder_size)
-    self.add_bone(right_collar, right_collar_end, shoulder_size)
-    self.add_bone(left_shoulder, left_elbow, elbow_size)
-    self.add_bone(right_shoulder, right_elbow, elbow_size)
-    self.add_bone(left_elbow, left_arm, upper_arm_size)
-    self.add_bone(right_elbow, right_arm, upper_arm_size)
-    self.add_bone(left_arm, left_wrist, lower_arm_size)
-    self.add_bone(right_arm, right_wrist, lower_arm_size)
+    self.add_bone(COLOR_SKIN, chin, head, head_size)
+    self.add_bone(COLOR_CLOTH, left_collar, left_collar_end, shoulder_size)
+    self.add_bone(COLOR_CLOTH, right_collar, right_collar_end, shoulder_size)
+    self.add_bone(COLOR_CLOTH, left_shoulder, left_elbow, elbow_size)
+    self.add_bone(COLOR_CLOTH, right_shoulder, right_elbow, elbow_size)
+    self.add_bone(COLOR_CLOTH, left_elbow, left_arm, upper_arm_size)
+    self.add_bone(COLOR_CLOTH, right_elbow, right_arm, upper_arm_size)
+    self.add_bone(COLOR_SKIN, left_arm, left_wrist, lower_arm_size)
+    self.add_bone(COLOR_SKIN, right_arm, right_wrist, lower_arm_size)
     
-    self.add_bone(chest, chin, neck_size)
+    self.add_bone(COLOR_SKIN, chest, chin, neck_size)
     
     if joints.shape[1] == 24:
       palm_size = 0.04 
@@ -127,42 +127,44 @@ class Bones:
       right_palm = joints[:,JOINT_RIGHT_PALM]
       left_direction = (left_palm - left_wrist) / np.linalg.norm(left_palm - left_wrist, axis=1, keepdims=True)
       left_wrist_adjusted = left_wrist + left_direction * 0.025
-      self.add_sphere(left_wrist_adjusted, palm_size)
+      self.add_sphere(COLOR_SKIN, left_wrist_adjusted, palm_size)
 
       right_direction = (right_palm - right_wrist) / np.linalg.norm(right_palm - right_wrist, axis=1, keepdims=True)
       right_wrist_adjusted = right_wrist + right_direction * 0.025
-      self.add_sphere(right_wrist_adjusted, palm_size)
+      self.add_sphere(COLOR_SKIN, right_wrist_adjusted, palm_size)
     
-  def add_bone(self, tails, heads, radius=0.05):
+  def add_bone(self, color_id, tails, heads, radius=0.05):
     bones_pos = (tails + heads) / 2
     bones_dir = heads - tails
     bones_len = np.linalg.norm(bones_dir, axis=1)
     bones_dir = bones_dir / bones_len[:, None]
     
-    self.spheres.append(Sphere(tails, r=radius))
-    self.spheres.append(Sphere(heads, r=radius))
-    self.cylinders.append(Cylinder(bones_pos, direction=bones_dir, height=bones_len, r=radius))
+    self.spheres.append(Sphere(color_id, tails, r=radius))
+    self.spheres.append(Sphere(color_id, heads, r=radius))
+    self.cylinders.append(Cylinder(color_id, bones_pos, direction=bones_dir, height=bones_len, r=radius))
   
-  def add_sphere(self, pos: np.ndarray, radius: float = 0.05):
-    self.spheres.append(Sphere(pos, r=radius))
+  def add_sphere(self, color_id, pos: np.ndarray, radius: float = 0.05):
+    self.spheres.append(Sphere(color_id, pos, r=radius))
 
 class Sphere:
-  def __init__(self, pos: np.ndarray, r: float = 0.05):
+  def __init__(self, color_id, pos: np.ndarray, r: float = 0.05):
     """
     pos: (frames, 3)
     r: float
     """
+    self.color_id = color_id
     self.pos = pos
     self.r = r
 
 class Cylinder:
-  def __init__(self, pos: np.ndarray, direction: np.ndarray, height: np.ndarray, r: float = 0.05):
+  def __init__(self, color_id, pos: np.ndarray, direction: np.ndarray, height: np.ndarray, r: float = 0.05):
     """
     pos: (frames, 3)
     direction: (frames, 3)
     height: (frames, )
     r: float
     """
+    self.color_id = color_id
     self.pos = pos
     self.direction = direction
     self.r = r

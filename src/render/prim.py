@@ -2,6 +2,7 @@ import bpy
 import numpy as np
 
 from render.bones import Bones
+from render.index import COLOR_CLOTH, COLOR_PANTS, COLOR_SKIN
 
 def create_mesh_for_frame(verts, faces, frame_num, material):
     """Create mesh object for a specific frame"""
@@ -135,13 +136,27 @@ def setup_cylinder_keyframes(cylinder, pos, direction, height):
         cylinder.keyframe_insert(data_path="location", frame=anim_frame)
         cylinder.keyframe_insert(data_path="rotation_axis_angle", frame=anim_frame)
 
-def setup_joints_and_bones(joints, material):
+def setup_joints_and_bones(joints, material, clothed):
     bones = Bones(joints)
     
     for sphere in bones.spheres:
-        s = create_sphere(material, sphere.r)
+        cid = sphere.color_id
+        sphere_material = material
+        if clothed:
+            if cid == COLOR_SKIN:
+                sphere_material = "Skin"
+            elif cid == COLOR_PANTS:
+                sphere_material = "Gray"
+        s = create_sphere(sphere_material, sphere.r)
         setup_sphere_keyframes(s, sphere.pos)
         
     for cylinder in bones.cylinders:
-        c = create_cylinder(material, cylinder.r)
+        cid = cylinder.color_id
+        cylinder_material = material
+        if clothed:
+            if cid == COLOR_SKIN:
+                cylinder_material = "Skin"
+            elif cid == COLOR_PANTS:
+                cylinder_material = "Gray"
+        c = create_cylinder(cylinder_material, cylinder.r)
         setup_cylinder_keyframes(c, cylinder.pos, cylinder.direction, cylinder.height)

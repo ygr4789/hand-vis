@@ -30,7 +30,9 @@ def parse_arguments():
     parser.add_argument('-sc', '--scene', type=int, default=0)
     parser.add_argument('-f', '--frame', type=int, default=None)
     parser.add_argument('-fg', '--figure', action='store_true')
+    parser.add_argument('-ff', '--figure_floor', action='store_true')
     parser.add_argument('-ih', '--input_hand', action='store_true')
+    parser.add_argument('-cl', '--clothed', action='store_true')
     parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
     parser.add_argument('-m', '--mode', type=str, choices=['output', 'input'], default='output')
     
@@ -46,7 +48,9 @@ def main():
     frame_no = args.frame
     render_mode = args.mode
     figure = args.figure
+    figure_floor = args.figure_floor
     input_hand = args.input_hand
+    clothed = args.clothed
     zoom = args.zoom
     
     # Load scene and setup
@@ -103,15 +107,17 @@ def main():
         num_frames = 1
     
     print("Preparing objects...")
-    setup_joints_and_bones(p1_joints, "Red_soft")
-    setup_joints_and_bones(p2_joints, "Blue_soft")
-    setup_mesh_keyframes(obj_verts, obj_faces, "Gray")
+    setup_joints_and_bones(p1_joints, "Red_soft", clothed)
+    setup_joints_and_bones(p2_joints, "Blue_soft", clothed)
+    setup_mesh_keyframes(obj_verts, obj_faces, "Dark_Gray")
     
     if render_mode == "output" or (render_mode == "input" and input_hand):
-        setup_mesh_keyframes(p1_hand_left_verts, hand_left_faces, "Red")
-        setup_mesh_keyframes(p1_hand_right_verts, hand_right_faces, "Red")
-        setup_mesh_keyframes(p2_hand_left_verts, hand_left_faces, "Blue")
-        setup_mesh_keyframes(p2_hand_right_verts, hand_right_faces, "Blue")
+        p1_hand_mat = "Skin" if clothed else "Red"
+        p2_hand_mat = "Skin" if clothed else "Blue"
+        setup_mesh_keyframes(p1_hand_left_verts, hand_left_faces, p1_hand_mat)
+        setup_mesh_keyframes(p1_hand_right_verts, hand_right_faces, p1_hand_mat)
+        setup_mesh_keyframes(p2_hand_left_verts, hand_left_faces, p2_hand_mat)
+        setup_mesh_keyframes(p2_hand_right_verts, hand_right_faces, p2_hand_mat)
         
     print("Objects setup complete")
     

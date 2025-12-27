@@ -24,6 +24,7 @@ def main() -> None:
     parser.add_argument('-ih', '--input_hand', action='store_true', help='Include input hand in the render')
     parser.add_argument('-cl', '--clothed', action='store_true', help='Render clothed scene')
     parser.add_argument('-fg', '--figure', action='store_true', help='Render figure scene with transparent background, only available for single frame image render')
+    parser.add_argument('-ff', '--figure_floor', action='store_true', help='Render figure scene with transparent background and floor, only available for single frame image render')
     parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
     
     args = parser.parse_args()
@@ -36,7 +37,7 @@ def main() -> None:
     figure = args.figure
     zoom = args.zoom
     clothed = args.clothed
-    
+    figure_floor = args.figure_floor
     # Create necessary directories
     input_path = Path(input_path)
     if not input_path.is_file() or not input_path.suffix == '.pkl':
@@ -66,7 +67,7 @@ def main() -> None:
         "-sc", str(scene_no),
     ]
     if zoom:
-        option_cmd.append("-z", str(zoom))
+        option_cmd.extend(["-z", str(zoom)])
     if high:
         option_cmd.append("-q")
     if input_hand:
@@ -75,6 +76,8 @@ def main() -> None:
         option_cmd.extend(["-f", str(frame_no)])
     if figure:
         option_cmd.append("-fg")
+    if figure_floor:
+        option_cmd.append("-ff")
     if clothed:
         option_cmd.append("-cl")
     

@@ -122,10 +122,13 @@ def main():
     print("Objects setup complete")
     
     # Render animation or a single frame
-    camera_settings = prepare_camera_settings(root_loc1, root_loc2, camera_no)
+    look_at = None
+    if zoom:
+        look_at = calculate_zoom_path(p1_hand_left_verts, p1_hand_right_verts, p2_hand_left_verts, p2_hand_right_verts, zoom)
+    camera_settings = prepare_camera_settings(root_loc1, root_loc2, camera_no, look_at)
     
     if frame_no is not None:
-        render_single_frame(video_path, camera_settings, frame_no, figure)
+        render_single_frame(video_path, camera_settings, frame_no, figure, figure_floor)
     else:
         render_animation(video_path, camera_settings)
     

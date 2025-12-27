@@ -3,6 +3,29 @@ import mathutils
 import numpy as np
 import math
 
+def calculate_zoom_path(p1l, p1r, p2l, p2r, zoom):
+    """
+    p1l, p1r, p2l, p2r: each is (T, N, 3)
+    Returns: (T, 3), the averaged vertex per frame, according to zoom spec
+    """
+    if zoom == "0":
+        verts = np.concatenate([p1l, p1r, p2l, p2r], axis=1)  # (T, 4*N, 3)
+    elif zoom == "1":
+        verts = np.concatenate([p1l, p1r], axis=1)  # (T, 2*N, 3)
+    elif zoom == "2":
+        verts = np.concatenate([p2l, p2r], axis=1)  # (T, 2*N, 3)
+    elif zoom == "1l":
+        verts = p1l  # (T, N, 3)
+    elif zoom == "1r":
+        verts = p1r
+    elif zoom == "2l":
+        verts = p2l
+    elif zoom == "2r":
+        verts = p2r
+    else:
+        raise ValueError(f"Zoom {zoom} is not supported")
+    return np.mean(verts, axis=1)  # (T, 3)
+
 def get_camera_params(camera_no):
     camera_params = [
         # azimuth, text
@@ -20,8 +43,7 @@ def get_camera_params(camera_no):
     else:
         raise ValueError(f"Camera no. {camera_no} does not exist")
 
-def prepare_camera_settings(root_loc1, root_loc2, camera_no):
-    """Adjust camera position by doubling its location vector"""
+def prepare_camera_settings(root_loc1, root_loc2, camera_no, look_at):
     root_loc1_mean = np.mean(root_loc1, axis=0)
     root_loc2_mean = np.mean(root_loc2, axis=0)
     center = (root_loc1_mean + root_loc2_mean) / 2
@@ -67,7 +89,8 @@ def prepare_camera_settings(root_loc1, root_loc2, camera_no):
             'cam_rotation': cam_rotation,
             'center': center,
             'angle': angle,
-            'text': text
+            'text': text,
+            'look_at': look_at
         }
         camera_settings.append(camera_setting)
     

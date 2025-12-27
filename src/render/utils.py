@@ -1,4 +1,5 @@
 import bpy
+import mathutils
 import os
 import sys
 import threading
@@ -52,14 +53,6 @@ def cleanup_existing_objects():
     if sample_collection:
         for obj in sample_collection.objects:
             bpy.data.objects.remove(obj, do_unlink=True)
-
-def setup_figure_scene():
-    """Setup figure scene"""
-    # Deactivate/hide the floor object
-    floor_obj = bpy.data.objects.get('Floor')
-    if floor_obj:
-        floor_obj.hide_render = True
-        floor_obj.hide_viewport = True
 
 def setup_background_scene(scene_no):
     """Setup background scene"""
@@ -150,8 +143,36 @@ def setup_animation_settings(num_frames):
     bpy.context.scene.frame_end = num_frames
 
 def setup_camera_setting(camera_setting):
-    bpy.context.scene.camera.location = camera_setting['cam_location']
-    bpy.context.scene.camera.rotation_euler = camera_setting['cam_rotation']
+    camera = bpy.context.scene.camera
+    camera.location = camera_setting['cam_location']
+    
+    look_at = camera_setting.get('look_at')
+    
+    if look_at is not None:
+        camera.data.angle = 0.07
+        
+        # Animate camera to look at look_at point for each frame
+        # look_at is (T, 3) location sequence
+        num_frames = look_at.shape[0]
+        cam_location_vec = mathutils.Vector(camera_setting['cam_location'])
+        
+        for frame in range(num_frames):
+            anim_frame = frame * 2 + 1
+            target_point = mathutils.Vector(look_at[frame])
+            
+            # Calculate direction from camera to target
+            direction = target_point - cam_location_vec
+            direction.normalize()
+            
+            # Calculate rotation to look at target
+            # Use track_quat to get rotation that points -Z axis at target
+            cam_rotation = direction.to_track_quat('-Z', 'Y').to_euler()
+            
+            camera.rotation_euler = cam_rotation
+            camera.keyframe_insert(data_path="rotation_euler", frame=anim_frame)
+    else:
+        # Static camera rotation
+        camera.rotation_euler = camera_setting['cam_rotation']
     
     center = camera_setting['center']
     angle = camera_setting['angle']
@@ -188,14 +209,32 @@ def render_animation(video_path, camera_settings):
         print()
         print(f"Saved to {video_path}")
 
-def render_single_frame(output_path, camera_settings, frame_no, figure):
+def render_single_frame(output_path, camera_settings, frame_no, figure, figure_floor):
     """Render a single frame (still image) from different camera angles"""
     # Use image output for stills
     bpy.context.scene.render.image_settings.file_format = 'PNG'
     bpy.context.scene.frame_current = 1
     
+    floor_obj = bpy.data.objects.get('Floor')
     if figure:
-        setup_figure_scene()
+        floor_obj.hide_render = True
+        floor_obj.hide_viewport = True
+        bpy.context.scene.render.film_transparent = True
+        bpy.context.scene.render.image_settings.color_mode = 'RGBA'
+    if figure_floor:
+        floor_obj = bpy.data.objects.get('Floor')
+        if hasattr(floor_obj, 'is_shadow_catcher'):
+            floor_obj.is_shadow_catcher = True
+        if hasattr(floor_obj, 'use_shadow_catcher'):
+            floor_obj.use_shadow_catcher = True
+        # Set roughness to 1.0 in Principled BSDF material
+        if floor_obj.data.materials:
+            floor_mat = floor_obj.data.materials[0]
+            if floor_mat.use_nodes:
+                for node in floor_mat.node_tree.nodes:
+                    if node.type == 'BSDF_PRINCIPLED':
+                        node.inputs['Roughness'].default_value = 1.0
+                        break
         bpy.context.scene.render.film_transparent = True
         bpy.context.scene.render.image_settings.color_mode = 'RGBA'
         

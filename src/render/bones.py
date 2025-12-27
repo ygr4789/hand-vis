@@ -51,6 +51,8 @@ class Bones:
     right_arm = interpolate(right_elbow, right_wrist, 0.6)
     
     chin = interpolate(neck, head, 0.5)
+    head = interpolate(neck, head, 0.95)
+    
     left_collar_end = interpolate(left_collar, left_shoulder, 0.7)
     right_collar_end = interpolate(right_collar, right_shoulder, 0.7)
     
@@ -59,27 +61,34 @@ class Bones:
     
     lower_spine = interpolate(pelvis, spine1, 0.2)
     lower_spine_length = 0.08
-    lower_spine_size = 0.07
+    lower_spine_size = 0.065
     lower_spine_start = lower_spine - hip_dir * lower_spine_length
     lower_spine_end = lower_spine + hip_dir * lower_spine_length
     
     upper_spine = interpolate(spine1, spine2, 0.7)
     upper_spine_length = 0.08
-    upper_spine_size = 0.07
+    upper_spine_size = 0.071
     upper_spine_start = upper_spine - shoulder_dir * upper_spine_length
     upper_spine_end = upper_spine + shoulder_dir * upper_spine_length
     
     middle_spine = interpolate(lower_spine, upper_spine, 0.5)
     middle_spine_length = 0.07
-    middle_spine_size = 0.07
+    middle_spine_size = 0.0675
     middle_spine_start = middle_spine - shoulder_dir * middle_spine_length
     middle_spine_end = middle_spine + shoulder_dir * middle_spine_length
     
     chest = interpolate(spine3, neck, 0.1)
-    chest_length = 0.1
-    chest_size = 0.075
+    chest_length = 0.0975
+    chest_size = 0.0725
     chest_start = chest - shoulder_dir * chest_length
     chest_end = chest + shoulder_dir * chest_length
+    
+    mid2 = interpolate(chest, middle_spine, 0.5)
+    upper_spine = interpolate(mid2, upper_spine, 0.35)
+    upper_spine_length = 0.08
+    upper_spine_size = 0.07
+    upper_spine_start = upper_spine - shoulder_dir * upper_spine_length
+    upper_spine_end = upper_spine + shoulder_dir * upper_spine_length
     
     self.add_bone(COLOR_CLOTH, lower_spine_start, lower_spine_end, lower_spine_size)
     self.add_bone(COLOR_CLOTH, upper_spine_start, upper_spine_end, upper_spine_size)
@@ -90,13 +99,13 @@ class Bones:
     knee_size = 0.055
     upper_ankle_size = 0.045
     lower_ankle_size = 0.03
-    toe_size = 0.035
-    head_size = 0.08
-    shoulder_size = 0.07
+    toe_size = 0.045
+    head_size = 0.075
+    shoulder_size = 0.067
     elbow_size = 0.04
     upper_arm_size = 0.035
     lower_arm_size = 0.02
-    neck_size = 0.04
+    neck_size = 0.0425
     
     self.add_bone(COLOR_PANTS, left_hip, right_hip, hip_size)
     self.add_bone(COLOR_PANTS, left_hip, left_knee, knee_size)
@@ -106,8 +115,14 @@ class Bones:
     self.add_bone(COLOR_SKIN, left_shin, left_ankle, lower_ankle_size)
     self.add_bone(COLOR_SKIN, right_shin, right_ankle, lower_ankle_size)
     
-    self.add_bone(COLOR_CLOTH, left_ankle, left_toe, toe_size)
-    self.add_bone(COLOR_CLOTH, right_ankle, right_toe, toe_size)
+    left_ankle_i = interpolate(left_ankle, left_toe, 0.1)
+    left_toe_i = interpolate(left_ankle, left_toe, 0.9)
+
+    right_ankle_i = interpolate(right_ankle, right_toe, 0.1)
+    right_toe_i = interpolate(right_ankle, right_toe, 0.9)
+    
+    self.add_bone(COLOR_CLOTH, left_ankle_i, left_toe_i, toe_size)
+    self.add_bone(COLOR_CLOTH, right_ankle_i, right_toe_i, toe_size)
     
     self.add_bone(COLOR_SKIN, chin, head, head_size)
     self.add_bone(COLOR_CLOTH, left_collar, left_collar_end, shoulder_size)

@@ -33,6 +33,7 @@ def parse_arguments():
     parser.add_argument('-ff', '--figure_floor', action='store_true')
     parser.add_argument('-ih', '--input_hand', action='store_true')
     parser.add_argument('-cl', '--clothed', action='store_true')
+    parser.add_argument('-cb', '--checkerboard', action='store_true')
     parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
     parser.add_argument('-m', '--mode', type=str, choices=['output', 'input'], default='output')
     
@@ -51,6 +52,7 @@ def main():
     figure_floor = args.figure_floor
     input_hand = args.input_hand
     clothed = args.clothed
+    checkerboard = args.checkerboard
     zoom = args.zoom
     
     # Load scene and setup
@@ -121,6 +123,7 @@ def main():
         
     print("Objects setup complete")
     
+    setup_floor_render(figure, figure_floor, checkerboard)
     # Render animation or a single frame
     look_at = None
     if zoom:
@@ -128,7 +131,7 @@ def main():
     camera_settings = prepare_camera_settings(root_loc1, root_loc2, camera_no, look_at)
     
     if frame_no is not None:
-        render_single_frame(video_path, camera_settings, frame_no, figure, figure_floor)
+        render_single_frame(video_path, camera_settings, frame_no)
     else:
         render_animation(video_path, camera_settings)
     

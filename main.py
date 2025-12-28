@@ -25,6 +25,7 @@ def main() -> None:
     parser.add_argument('-cl', '--clothed', action='store_true', help='Render clothed scene')
     parser.add_argument('-fg', '--figure', action='store_true', help='Render figure scene with transparent background, only available for single frame image render')
     parser.add_argument('-ff', '--figure_floor', action='store_true', help='Render figure scene with transparent background and floor, only available for single frame image render')
+    parser.add_argument('-cb', '--checkerboard', action='store_true', help='Render checkerboard pattern on the floor')
     parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
     
     args = parser.parse_args()
@@ -38,6 +39,7 @@ def main() -> None:
     zoom = args.zoom
     clothed = args.clothed
     figure_floor = args.figure_floor
+    checkerboard = args.checkerboard
     # Create necessary directories
     input_path = Path(input_path)
     if not input_path.is_file() or not input_path.suffix == '.pkl':
@@ -80,6 +82,8 @@ def main() -> None:
         option_cmd.append("-ff")
     if clothed:
         option_cmd.append("-cl")
+    if checkerboard:
+        option_cmd.append("-cb")
     
     render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), video_path_output, option_cmd + ["-m", "output"])
     render_sequence(RENDER_SCRIPT_PATH, str(intermediate_path), video_path_input, option_cmd + ["-m", "input"])

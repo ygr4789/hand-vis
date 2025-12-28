@@ -195,6 +195,37 @@ def setup_camera_setting(camera_setting):
     if sun:
         sun.rotation_euler = light_rotation
 
+def setup_floor_render(figure, figure_floor, checkerboard):
+    floor_obj = bpy.data.objects.get('Floor')
+    
+    if figure:
+        floor_obj.hide_render = True
+        floor_obj.hide_viewport = True
+        bpy.context.scene.render.film_transparent = True
+        bpy.context.scene.render.image_settings.color_mode = 'RGBA'
+        
+    if figure_floor:
+        floor_obj = bpy.data.objects.get('Floor')
+        if hasattr(floor_obj, 'is_shadow_catcher'):
+            floor_obj.is_shadow_catcher = True
+        if hasattr(floor_obj, 'use_shadow_catcher'):
+            floor_obj.use_shadow_catcher = True
+        if floor_obj.data.materials:
+            floor_mat = floor_obj.data.materials[0]
+            if floor_mat.use_nodes:
+                for node in floor_mat.node_tree.nodes:
+                    if node.type == 'BSDF_PRINCIPLED':
+                        node.inputs['Roughness'].default_value = 1.0
+                        break
+        bpy.context.scene.render.film_transparent = True
+        bpy.context.scene.render.image_settings.color_mode = 'RGBA'
+        
+    if checkerboard:
+        checkerboard_material = bpy.data.materials.get('CheckerBoard')
+        if checkerboard_material and floor_obj:
+            floor_obj.data.materials.clear()
+            floor_obj.data.materials.append(checkerboard_material)
+        
 def render_animation(video_path, camera_settings):
     """Render animation from different camera angles"""
     for camera_setting in camera_settings:
@@ -209,38 +240,15 @@ def render_animation(video_path, camera_settings):
         print()
         print(f"Saved to {video_path}")
 
-def render_single_frame(output_path, camera_settings, frame_no, figure, figure_floor):
+def render_single_frame(output_path, camera_settings, frame_no):
     """Render a single frame (still image) from different camera angles"""
     # Use image output for stills
     bpy.context.scene.render.image_settings.file_format = 'PNG'
     bpy.context.scene.frame_current = 1
-    
-    floor_obj = bpy.data.objects.get('Floor')
-    if figure:
-        floor_obj.hide_render = True
-        floor_obj.hide_viewport = True
-        bpy.context.scene.render.film_transparent = True
-        bpy.context.scene.render.image_settings.color_mode = 'RGBA'
-    if figure_floor:
-        floor_obj = bpy.data.objects.get('Floor')
-        if hasattr(floor_obj, 'is_shadow_catcher'):
-            floor_obj.is_shadow_catcher = True
-        if hasattr(floor_obj, 'use_shadow_catcher'):
-            floor_obj.use_shadow_catcher = True
-        # Set roughness to 1.0 in Principled BSDF material
-        if floor_obj.data.materials:
-            floor_mat = floor_obj.data.materials[0]
-            if floor_mat.use_nodes:
-                for node in floor_mat.node_tree.nodes:
-                    if node.type == 'BSDF_PRINCIPLED':
-                        node.inputs['Roughness'].default_value = 1.0
-                        break
-        bpy.context.scene.render.film_transparent = True
-        bpy.context.scene.render.image_settings.color_mode = 'RGBA'
         
     for camera_setting in camera_settings:
         cam_text = camera_setting['text']
-        filepath = f"{output_path}_{cam_text}_f{frame_no:04d}{'_figure' if figure else ''}.png"
+        filepath = f"{output_path}_{cam_text}_f{frame_no:04d}.png"
         bpy.context.scene.render.filepath = filepath
         setup_camera_setting(camera_setting)
         

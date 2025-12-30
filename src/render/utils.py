@@ -201,6 +201,7 @@ def setup_floor_render(figure, figure_floor, checkerboard):
     if figure:
         floor_obj.hide_render = True
         floor_obj.hide_viewport = True
+        bpy.context.scene.render.image_settings.file_format = 'PNG'
         bpy.context.scene.render.film_transparent = True
         bpy.context.scene.render.image_settings.color_mode = 'RGBA'
         
@@ -217,6 +218,7 @@ def setup_floor_render(figure, figure_floor, checkerboard):
                     if node.type == 'BSDF_PRINCIPLED':
                         node.inputs['Roughness'].default_value = 1.0
                         break
+        bpy.context.scene.render.image_settings.file_format = 'PNG'
         bpy.context.scene.render.film_transparent = True
         bpy.context.scene.render.image_settings.color_mode = 'RGBA'
         

@@ -50,9 +50,6 @@ class Bones:
     left_arm = interpolate(left_elbow, left_wrist, 0.6)
     right_arm = interpolate(right_elbow, right_wrist, 0.6)
     
-    chin = interpolate(neck, head, 0.5)
-    head = interpolate(neck, head, 0.95)
-    
     left_collar_end = interpolate(left_collar, left_shoulder, 0.7)
     right_collar_end = interpolate(right_collar, right_shoulder, 0.7)
     
@@ -90,22 +87,27 @@ class Bones:
     upper_spine_start = upper_spine - shoulder_dir * upper_spine_length
     upper_spine_end = upper_spine + shoulder_dir * upper_spine_length
     
+    mid_neck = interpolate(chest, neck, 0.5)
+    chin = interpolate(mid_neck, head, 0.5)
+    upper_chin = interpolate(mid_neck, head, 0.73)
+    head = interpolate(mid_neck, head, 0.95)
+
     self.add_bone(COLOR_CLOTH, lower_spine_start, lower_spine_end, lower_spine_size)
     self.add_bone(COLOR_CLOTH, upper_spine_start, upper_spine_end, upper_spine_size)
     self.add_bone(COLOR_CLOTH, middle_spine_start, middle_spine_end, middle_spine_size)
     self.add_bone(COLOR_CLOTH, chest_start, chest_end, chest_size)
     
     hip_size = 0.07
-    knee_size = 0.055
+    knee_size = 0.0555
     upper_ankle_size = 0.045
     lower_ankle_size = 0.03
     toe_size = 0.045
     head_size = 0.075
-    shoulder_size = 0.067
+    shoulder_size = 0.066
     elbow_size = 0.04
     upper_arm_size = 0.035
     lower_arm_size = 0.02
-    neck_size = 0.0425
+    neck_size = 0.0375
     
     self.add_bone(COLOR_PANTS, left_hip, right_hip, hip_size)
     self.add_bone(COLOR_PANTS, left_hip, left_knee, knee_size)
@@ -124,7 +126,7 @@ class Bones:
     self.add_bone(COLOR_CLOTH, left_ankle_i, left_toe_i, toe_size)
     self.add_bone(COLOR_CLOTH, right_ankle_i, right_toe_i, toe_size)
     
-    self.add_bone(COLOR_SKIN, chin, head, head_size)
+    self.add_bone(COLOR_SKIN, upper_chin, head, head_size)
     self.add_bone(COLOR_CLOTH, left_collar, left_collar_end, shoulder_size)
     self.add_bone(COLOR_CLOTH, right_collar, right_collar_end, shoulder_size)
     self.add_bone(COLOR_CLOTH, left_shoulder, left_elbow, elbow_size)
@@ -134,6 +136,7 @@ class Bones:
     self.add_bone(COLOR_SKIN, left_arm, left_wrist, lower_arm_size)
     self.add_bone(COLOR_SKIN, right_arm, right_wrist, lower_arm_size)
     
+    # self.add_bone(COLOR_SKIN, chest, chin, neck_size)
     self.add_bone(COLOR_SKIN, chest, chin, neck_size)
     
     if joints.shape[1] == 24:

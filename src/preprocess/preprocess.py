@@ -16,7 +16,7 @@ def preprocess_pkl_file(pkl_path, save_path, mode):
 
     with open(pkl_path, "rb") as f:
         data = safe_load_pkl(pkl_path)
-        
+        import ipdb; ipdb.set_trace()
         obj_faces_list = data["obj_faces_list"]
         original_obj_verts_list = data["original_obj_verts_list"]
         filtered_obj_verts_list = data["filtered_obj_verts_list"]

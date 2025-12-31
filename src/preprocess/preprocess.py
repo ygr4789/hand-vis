@@ -7,7 +7,7 @@ from .hand_model import HandModel
 from .close_surface import close_surface
 from .safe_load import safe_load_pkl
 
-def preprocess_pkl_file(pkl_path, save_path):
+def preprocess_pkl_file(pkl_path, save_path, mode):
     if os.path.exists(save_path):
         print(f"Preprocessed data already exists at {save_path}")
         return
@@ -27,10 +27,10 @@ def preprocess_pkl_file(pkl_path, save_path):
         stage2_result = data["stage2_result"]
         stage3_result = data["stage3_result"]
         
-        stage2_pseudo_gt_p1 = stage2_result["pseudo_gt_p1"]
-        stage2_pseudo_gt_p2 = stage2_result["pseudo_gt_p2"]
-        stage3_pseudo_gt_p1 = stage3_result["pseudo_gt_p1"]
-        stage3_pseudo_gt_p2 = stage3_result["pseudo_gt_p2"]
+        stage2_pseudo_gt_p1 = stage2_result[f"{mode}_p1"]
+        stage2_pseudo_gt_p2 = stage2_result[f"{mode}_p2"]
+        stage3_pseudo_gt_p1 = stage3_result[f"{mode}_p1"]
+        stage3_pseudo_gt_p2 = stage3_result[f"{mode}_p2"]
         
         p1_joints = stage2_pseudo_gt_p1["jnts_list"].detach().cpu().numpy()
         p2_joints = stage2_pseudo_gt_p2["jnts_list"].detach().cpu().numpy()
@@ -45,6 +45,7 @@ def preprocess_pkl_file(pkl_path, save_path):
         p2_wrist_T = stage3_pseudo_gt_p2[0]["wrist_T"]
         p2_wrist_T_right = stage3_pseudo_gt_p2[1]["wrist_T"]
         
+        # import ipdb; ipdb.set_trace()
         input_data = data['input']
         input_p1_joints = input_data['gt_p1_jnts_list'].detach().cpu().numpy()
         input_p2_joints = input_data['gt_p2_jnts_list'].detach().cpu().numpy()
@@ -62,13 +63,36 @@ def preprocess_pkl_file(pkl_path, save_path):
 
     num_frames = min(num_frames_p1_joints, num_frames_p2_joints, num_frames_input_p1_joints, num_frames_input_p2_joints, num_frames_obj)
 
-    p1_joints = p1_joints[:num_frames]
-    p2_joints = p2_joints[:num_frames]
-    input_p1_joints = input_p1_joints[:num_frames]
-    input_p2_joints = input_p2_joints[:num_frames]
-    input_p1_body_vertices = input_p1_body_vertices[:num_frames]
-    input_p2_body_vertices = input_p2_body_vertices[:num_frames]
-    obj_verts = obj_verts[:num_frames]
+    start, end = 0, num_frames
+    if 'frame_start_end' in data:
+        start, end = data['frame_start_end']
+        num_frames = end - start
+
+    # body
+    p1_joints = p1_joints[start:end]
+    p2_joints = p2_joints[start:end]
+    input_p1_joints = input_p1_joints[start:end]
+    input_p2_joints = input_p2_joints[start:end]
+
+    # input hand 
+    input_p1_body_vertices = input_p1_body_vertices[start:end]
+    input_p2_body_vertices = input_p2_body_vertices[start:end]
+
+    # output hand 
+    p1_hand_parmas_left = p1_hand_parmas_left[start:end]
+    p2_hand_parmas_left = p2_hand_parmas_left[start:end]
+    p1_hand_parmas_right = p1_hand_parmas_right[start:end]
+    p2_hand_parmas_right = p2_hand_parmas_right[start:end]
+    
+    # import ipdb; ipdb.set_trace()
+    # already the same
+    # p1_joints[:,20] = p1_hand_parmas_left[start:end,:3].cpu().numpy()
+    # p1_joints[:,21] = p1_hand_parmas_right[start:end,:3].cpu().numpy()
+    # p2_joints[:,20] = p2_hand_parmas_left[start:end,:3].cpu().numpy()
+    # p2_joints[:,21] = p2_hand_parmas_right[start:end,:3].cpu().numpy()
+
+    # obj
+    obj_verts = obj_verts[start:end]
 
     hand_model_left = HandModel(left_hand=True, gender="female", device=device, batch_size=num_frames)
     hand_model_right = HandModel(left_hand=False, gender="female", device=device, batch_size=num_frames)

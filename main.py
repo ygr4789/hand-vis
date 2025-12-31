@@ -7,6 +7,8 @@ from typing import Optional, List
 from config import *
 from preprocess.preprocess import preprocess_pkl_file
 
+
+
 def render_sequence(script: str, data_path: str, video_path: str, option_cmd: List[str]) -> None:
     """Render a sequence using Blender."""
     option_cmd.extend(["-i", str(data_path), "-o", str(video_path)])
@@ -27,7 +29,9 @@ def main() -> None:
     parser.add_argument('-ff', '--figure_floor', action='store_true', help='Render figure scene with transparent background and floor, only available for single frame image render')
     parser.add_argument('-cb', '--checkerboard', action='store_true', help='Render checkerboard pattern on the floor')
     parser.add_argument('-z', '--zoom', type=str, choices=[None, '0', '1', '2', '1l', '1r', '2l', '2r'], default=None)
-    
+
+    parser.add_argument('-m', '--mode', type=str, choices=['pred', 'pseudo_gt', 'obj_retarget', 'slahmr'], default='pseudo_gt')
+
     args = parser.parse_args()
     input_path = args.input
     camera_no = args.camera
@@ -41,7 +45,7 @@ def main() -> None:
     figure_floor = args.figure_floor
     checkerboard = args.checkerboard
     # Create necessary directories
-    input_path = Path(input_path)
+    input_path = Path(os.path.join(DEMO_BASE_DIR, input_path))
     if not input_path.is_file() or not input_path.suffix == '.pkl':
         raise ValueError(f"{input_path} is not a .pkl file")
         
@@ -62,7 +66,7 @@ def main() -> None:
     video_path_input = output_dir / data_subdir / file_name_input
     
     intermediate_path = cache_dir / f"{input_path.stem}.npz"
-    preprocess_pkl_file(str(input_path), str(intermediate_path))
+    preprocess_pkl_file(str(input_path), str(intermediate_path), args.mode)
     
     option_cmd = [
         "-c", str(camera_no),

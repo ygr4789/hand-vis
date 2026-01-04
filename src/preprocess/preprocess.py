@@ -8,9 +8,9 @@ from .close_surface import close_surface
 from .safe_load import safe_load_pkl
 
 def preprocess_pkl_file(pkl_path, save_path):
-    if os.path.exists(save_path):
-        print(f"Preprocessed data already exists at {save_path}")
-        return
+    # if os.path.exists(save_path):
+    #     print(f"Preprocessed data already exists at {save_path}")
+    #     return
         
     device = torch.device("cuda")
 
@@ -59,7 +59,7 @@ def preprocess_pkl_file(pkl_path, save_path):
     num_frames_input_p1_joints = input_p1_joints.shape[0]
     num_frames_input_p2_joints = input_p2_joints.shape[0]
     num_frames_obj = obj_verts.shape[0]
-
+    
     num_frames = min(num_frames_p1_joints, num_frames_p2_joints, num_frames_input_p1_joints, num_frames_input_p2_joints, num_frames_obj)
 
     p1_joints = p1_joints[:num_frames]

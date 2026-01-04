@@ -96,15 +96,12 @@ def setup_keyframe(obj, frame_num):
 
 def setup_mesh_keyframes(verts_list, obj_faces_list, material):
     """Create mesh objects for each frame"""
-    num_frames = len(verts_list)*2-1
-    for frame_num in range(1, num_frames+1):
+    for frame_num in range(1, len(verts_list)*2):
         # Create mesh for the frame
-        if frame_num == num_frames:
-            verts = verts_list[-1]
-        elif frame_num % 2 == 0:
+        if frame_num % 2 == 1:
             verts = verts_list[frame_num//2]
         else:
-            verts = (verts_list[frame_num//2] + verts_list[frame_num//2+1]) / 2
+            verts = (verts_list[frame_num//2-1] + verts_list[frame_num//2]) / 2
         obj = create_mesh_for_frame(verts, obj_faces_list, frame_num, material)
         setup_keyframe(obj, frame_num)
 
